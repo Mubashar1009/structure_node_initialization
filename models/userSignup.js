@@ -1,11 +1,13 @@
 const mongoose = require("mongoose");
-const bcrypt = require("bcrypt");const appError = require("../utils/appError");
-`
-`
+const bcrypt = require("bcrypt");
+const appError = require("../utils/appError");
+
 const user = mongoose.Schema({
   username: { type: String, required: true, unique: true },
   email: { type: String, required: true },
-  password: { type: String, required: true },
+  password: { type: String, required: true,
+    select : false
+   },
   confirmPassword: {
     type: String,
     required: true,
@@ -25,6 +27,13 @@ const user = mongoose.Schema({
 //   }
 //   next(new appError("Passwords do not match",400))
 // });
+user.methods.verifyPassword =  function (candidatePassword,userPassword) {
+
+  return    bcrypt.compare(userPassword, candidatePassword);
+ 
+ 
+};
+
 user.pre("save", async function (next)  {
 
    if(!this.isModified('password')) {
