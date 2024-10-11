@@ -8,18 +8,24 @@ const user = mongoose.Schema({
   password: { type: String, required: true,
     select : false
    },
+   role : {
+    type : String,
+    enum  : ["user","admin"],
+    default : "user",
+   },
   confirmPassword: {
     type: String,
     required: true,
-    // validate: {
-    //   //this will run only create or save 
-    //   validator: function (e) {
-    //     console.log("e",e,"password",this.password,this.username,this.email);
-    //     return e === this.password
-    //   },
-    //   message : "Passwords are not same "
-    // },
+    validate: {
+      //this will run only create or save 
+      validator: function (e) {
+        console.log("e",e,"password",this.password,this.username,this.email);
+        return e === this.password
+      },
+      message : "Passwords are not same "
+    },
   },
+  passwordChangeAt : Date
 });
 // user.pre('validate', function (next) {
 //   if (this.confirmPassword === this.password) {
@@ -29,11 +35,20 @@ const user = mongoose.Schema({
 // });
 user.methods.verifyPassword =  function (candidatePassword,userPassword) {
 
-  return    bcrypt.compare(userPassword, candidatePassword);
+  return   bcrypt.compare(userPassword, candidatePassword);
  
  
 };
 
+user.methods.changePasswordAfter = function (JwtTimeStemp) {
+  if(this.passwordChangeAt) {
+    const convertPasswordChangeAtIntoNumber = parseInt(this.passwordChangeAt.getTime()/1000,10);
+    console.log("Passwords change",convertPasswordChangeAtIntoNumber,JwtTimeStemp);
+    //When we will change password then  passwordChangeAt will increase due to date or time change 
+    return JwtTimeStemp< convertPasswordChangeAtIntoNumber
+  }
+  return false;
+}
 user.pre("save", async function (next)  {
 
    if(!this.isModified('password')) {

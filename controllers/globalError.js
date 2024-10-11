@@ -41,6 +41,17 @@ const handleValidationErrorDB = (error) => {
   return new appError(message, 400);
  
 }
+const handleJsonWebTokenError = () => {
+  const message = "Invalid token. Please login again.";
+  console.log("Message: " , message);
+  return new appError(message, 401);
+ }
+
+ const handleTokenExpiredError = () => {
+  const message = "Token expired. Please login again.";
+  console.log("Message: " , message);
+  return new appError(message, 401);
+ }
 module.exports = (err, req, res, next) => {
   err.statusCode = err.statusCode || 500;
   err.status = err.status || "error";
@@ -60,6 +71,12 @@ module.exports = (err, req, res, next) => {
     if(err.name === "ValidationError") {
       error  = handleValidationErrorDB(err);
     }
+    if(err.name === "JsonWebTokenError") {
+      error = handleJsonWebTokenError();
+    }
+    if(err.name === "TokenExpiredError") {
+      error = handleTokenExpiredError();
+     }
     return sendProductionError(error, res);
   // res.status(500).json({
     
