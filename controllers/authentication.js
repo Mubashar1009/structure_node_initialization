@@ -3,7 +3,6 @@ const {promisify} = require("util");
 const jwt = require("jsonwebtoken");
 const User  = require("../models/userSignup")
 const userSignup = require("../models/userSignup");
-
 exports.protectRoute = catchAsync(async(req,res,next) => {
        let token ; 
        if(req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
@@ -43,3 +42,4 @@ exports.deletePermission = (...roles) => {
 
    }
  }
+
