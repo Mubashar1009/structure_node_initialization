@@ -1,7 +1,9 @@
 const appError = require("../utils/appError");
 const UserModel = require("../models/userSignup");
 const catchAsync = require("../utils/globalCatch");
-const jwt = require("jsonwebtoken");
+
+const { generateToken } = require("../utils/generateToken");
+
 exports.signup = catchAsync(async (req, res, next) => {
   const { username, email, password, confirmPassword } = req.body;
   const existingUser = await UserModel.findOne({ email });
@@ -15,9 +17,7 @@ exports.signup = catchAsync(async (req, res, next) => {
   // we can write req.body instead of writing each field separately
   const newUser = await new UserModel(req.body);
   //jwt token
-  const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET_KEY, {
-    expiresIn: process.env.JWT_EXPIRE_IN,
-  });
+  const token = generateToken(newUser._id);
   await newUser.save();
   return res.status(201).send({ message: "User created successfully", token });
 });

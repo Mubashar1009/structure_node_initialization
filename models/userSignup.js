@@ -24,10 +24,16 @@ const user = mongoose.Schema({
       },
       message : "Passwords are not same "
     },
-    resetPasswordToken : String,
-    resetPasswordExpiresIn : Date,
+   
   },
-  passwordChangeAt : Date
+  passwordChangeAt : Date,
+  resetPasswordToken : String,
+  resetPasswordExpiresIn : Date,
+  status :  {
+    type : Boolean,
+    default : true,
+    select: false
+  }
 });
 // user.pre('validate', function (next) {
 //   if (this.confirmPassword === this.password) {
@@ -61,7 +67,19 @@ user.pre("save", async function (next)  {
    this.confirmPassword = undefined;
    next()
 })
+user.pre(/^find/,function(next) {
+   this.find({active : {$ne : false}})
+   next();
+})
+user.pre("save", async function (next)  {
 
+  if(!this.isModified('password') || this.isNew) {
+
+   return next()
+  }
+  this.passwordChangeAt = new Date()-1000;
+  next()
+})
 user.methods.forgetPasswordMethod = function () {
   const resetToken = crypto.randomBytes(32).toString('hex');
   this.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
