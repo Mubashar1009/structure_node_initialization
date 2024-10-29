@@ -3,6 +3,7 @@ const dotenv = require("dotenv");
 const mongoose = require("mongoose");
 const router = require("./routers/signup");
 const globalError  = require("./controllers/globalError");
+const ratelimit = require("express-rate-limit")
 const { checkUsername } = require("./middleware/checkUsername");
 const appError = require("./utils/appError");
 
@@ -20,7 +21,12 @@ try {
 const port = process.env.PORT || 4000;
 
 //Middleware
-
+const limiter = ratelimit({
+  windowMs : 60*60*1000,
+  limit : 3,
+  message : "Too many requests from this IP, please try again in an hour." 
+})
+app.use ("/",limiter)
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 // router.route("/").get((req,res)=>{

@@ -8,7 +8,6 @@ exports.signup = catchAsync(async (req, res, next) => {
   const { username, email, password, confirmPassword } = req.body;
   const existingUser = await UserModel.findOne({ email });
   if (existingUser) {
-
     return next(new appError("User already exists", 409));
   }
   if (!username || !email || !password || !confirmPassword) {
@@ -18,6 +17,15 @@ exports.signup = catchAsync(async (req, res, next) => {
   const newUser = await new UserModel(req.body);
   //jwt token
   const token = generateToken(newUser._id);
+  const cookiesOptions = {
+    
+    expires: new Date(
+      Date.now() + process.env.JWT_COOKIES_EXPIRE_IN * 24 * 60 * 60 * 1000
+    ),
+    httpOnly : true
+  }
+  if(process.env.NODE_ENV === 'production') cookiesOptions.secure = true
+  res.cookie("jwt", token, cookiesOptions);
   await newUser.save();
   return res.status(201).send({ message: "User created successfully", token });
 });
